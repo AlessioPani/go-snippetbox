@@ -18,7 +18,7 @@ run: build
 start: run
 
 # stop: stops the running application 
-# Windows user: se @taskkill /IM ${BINARY_NAME} /F instead
+# Windows user: use @taskkill /IM ${BINARY_NAME} /F instead
 stop:
 	@echo "Stopping..."
 	@-pkill -SIGTERM -f "${BINARY_NAME}"
