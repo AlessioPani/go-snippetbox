@@ -18,7 +18,7 @@ run: build
 start: run
 
 # stop: stops the running application 
-# Windows user: use @taskkill /IM ${BINARY_NAME} /F instead
+# Windows users: use @taskkill /IM ${BINARY_NAME} /F instead
 stop:
 	@echo "Stopping..."
 	@-pkill -SIGTERM -f "${BINARY_NAME}"
@@ -27,7 +27,7 @@ stop:
 # restart: stop and start the application
 restart: stop start
 
-# clean: runs go clean and delete the executable
+# clean: runs go clean and deletes the executable
 clean:
 	@echo "Cleaning..."
 	@go clean
