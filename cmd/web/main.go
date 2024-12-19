@@ -1,13 +1,21 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 )
 
 func main() {
+
+	// Gets the application config by parsing command line parameters
+	addr := flag.String("addr", ":8080", "HTTP Network Address")
+	flag.Parse()
+
+	// Creates a new mux
 	mux := http.NewServeMux()
 
+	// Static files server
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 
 	// Static files handler
@@ -19,9 +27,9 @@ func main() {
 	mux.HandleFunc("GET /snippet/create", snippetCreate)
 	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
 
-	log.Print("Starting server on port :8080")
-
-	err := http.ListenAndServe(":8080", mux)
+	// Starts the server and checks for errors
+	log.Print("Starting server on port ", *addr)
+	err := http.ListenAndServe(*addr, mux)
 	log.Fatal(err)
 
 }

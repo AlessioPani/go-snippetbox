@@ -1,5 +1,6 @@
 ## CONFIGURATION VARIABLES
 BINARY_NAME = snippetbox
+ADDRESS = :8080
 
 ## COMMANDS LIST
 # build: build the application with extra flags to get the smallest executable
@@ -12,7 +13,7 @@ build:
 # run: build and run the application
 run: build
 	@echo "Running application..."
-	@env ./${BINARY_NAME}
+	@env ./${BINARY_NAME} -addr="${ADDRESS}"
 
 # start: alias to run
 start: run
