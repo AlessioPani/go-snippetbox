@@ -2,15 +2,30 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
+
+type application struct {
+	logger *slog.Logger
+}
 
 func main() {
 
 	// Gets the application config by parsing command line parameters
 	addr := flag.String("addr", ":8080", "HTTP Network Address")
 	flag.Parse()
+
+	// Initialize a new structured logger with some minor customization
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+
+	// Initialize application config struct with all the dependencies
+	app := &application{
+		logger: logger,
+	}
 
 	// Creates a new mux
 	mux := http.NewServeMux()
@@ -22,14 +37,14 @@ func main() {
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
 	// Application handlers
-	mux.HandleFunc("GET /{$}", home)
-	mux.HandleFunc("GET /snippet/view/{id}/", snippetView)
-	mux.HandleFunc("GET /snippet/create", snippetCreate)
-	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
+	mux.HandleFunc("GET /{$}", app.home)
+	mux.HandleFunc("GET /snippet/view/{id}/", app.snippetView)
+	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
+	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
 
 	// Starts the server and checks for errors
-	log.Print("Starting server on port ", *addr)
+	logger.Info("starting server", slog.String("addr", *addr))
 	err := http.ListenAndServe(*addr, mux)
-	log.Fatal(err)
-
+	logger.Error(err.Error())
+	os.Exit(1)
 }
