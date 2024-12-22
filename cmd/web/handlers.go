@@ -34,7 +34,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 // snippetView is the handler used to view a specific snippet by its ID.
 // Method: GET
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
-	strconv.ParseInt()
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
