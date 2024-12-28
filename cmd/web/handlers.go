@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 
@@ -11,7 +12,6 @@ import (
 
 // home is the homepage handler.
 // Method: GET
-// TODO: Proper dynamic html template.
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
 
@@ -21,30 +21,31 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%v", snippets)
+	data := templateData{
+		Snippets: snippets,
+	}
 
-	// files := []string{
-	// 	"./ui/html/partials/nav.tmpl.html",
-	// 	"./ui/html/base.tmpl.html",
-	// 	"./ui/html/pages/home.tmpl.html",
-	// }
+	files := []string{
+		"./ui/html/base.tmpl.html",
+		"./ui/html/partials/nav.tmpl.html",
+		"./ui/html/pages/home.tmpl.html",
+	}
 
-	// ts, err := template.ParseFiles(files...)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// 	return
-	// }
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
 
-	// err = ts.ExecuteTemplate(w, "base", nil)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// 	return
-	// }
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
 }
 
 // snippetView is the handler used to view a specific snippet by its ID.
 // Method: GET
-// TODO: create a dynamic html template to render the snippet properly.
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
@@ -61,7 +62,28 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	fmt.Fprintf(w, "%v", snippet)
+
+	data := templateData{
+		Snippet: snippet,
+	}
+
+	files := []string{
+		"./ui/html/base.tmpl.html",
+		"./ui/html/partials/nav.tmpl.html",
+		"./ui/html/pages/view.tmpl.html",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
 }
 
 // snippetCreate is the handler that shows a form used to create a snippet.
