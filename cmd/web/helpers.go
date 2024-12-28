@@ -4,8 +4,7 @@ import (
 	"net/http"
 )
 
-// The serverError helper writes a log entry at Error level and sends a generic
-// 500 Internal Server Error response to the user.
+// The serverError helper writes a log entry at Error level and sends a generic 500 Internal Server Error response to the user.
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
 	method := r.Method
 	uri := r.URL.RequestURI()
