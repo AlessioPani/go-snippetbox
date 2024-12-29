@@ -9,8 +9,9 @@ import (
 
 // templateData is a struct that contains data to be passed on a template
 type templateData struct {
-	Snippet  models.Snippet
-	Snippets []models.Snippet
+	CurrentYear int
+	Snippet     models.Snippet
+	Snippets    []models.Snippet
 }
 
 // newTemplateCache is a method that creates a in-memory template cache.

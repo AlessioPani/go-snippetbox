@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 // serverError is a method that writes a log entry at Error level and sends a generic 500 Internal Server Error response to the user.
@@ -45,4 +46,10 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 
 	// Write the template to the actual http.ResponseWriter.
 	buf.WriteTo(w)
+}
+
+func (app *application) newTemplateData(r *http.Request) templateData {
+	return templateData{
+		CurrentYear: time.Now().Year(),
+	}
 }
