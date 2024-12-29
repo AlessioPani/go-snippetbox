@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"github.com/AlessioPani/go-snippetbox/internal/models"
 )
@@ -12,6 +13,16 @@ type templateData struct {
 	CurrentYear int
 	Snippet     models.Snippet
 	Snippets    []models.Snippet
+}
+
+// humanDate is a function that returns a nicely formatted date.
+func humanDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
+}
+
+// functions is a global template.FuncMap to store the custom functions we made available to templates.
+var functions = template.FuncMap{
+	"humanDate": humanDate,
 }
 
 // newTemplateCache is a method that creates a in-memory template cache.
@@ -24,7 +35,10 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	}
 
 	for _, page := range pages {
-		ts, err := template.ParseFiles("./ui/html/base.tmpl.html")
+		name := filepath.Base(page)
+
+		// Calling Functs before ParseFiles to make available the custom functions across the templates.
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl.html")
 		if err != nil {
 			return nil, err
 		}
@@ -39,7 +53,6 @@ func newTemplateCache() (map[string]*template.Template, error) {
 			return nil, err
 		}
 
-		name := filepath.Base(page)
 		cache[name] = ts
 	}
 
