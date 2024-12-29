@@ -43,11 +43,13 @@ func newTemplateCache() (map[string]*template.Template, error) {
 			return nil, err
 		}
 
+		// Parse all the partial html templates, starting from base template + custom functions.
 		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl.html")
 		if err != nil {
 			return nil, err
 		}
 
+		// Parse the page of the current iteration.
 		ts, err = ts.ParseFiles(page)
 		if err != nil {
 			return nil, err

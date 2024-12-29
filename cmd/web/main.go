@@ -21,7 +21,6 @@ type application struct {
 }
 
 func main() {
-
 	// Gets the app config by parsing command line parameters
 	addr := flag.String("addr", ":8080", "HTTP Network Address")
 	dsn := flag.String("dsn", "./db-data/snippetbox.db", "Database dsn")
@@ -72,6 +71,7 @@ func openDB(dsn string) (*sql.DB, error) {
 		return nil, err
 	}
 
+	// Ping the DB connection pool if an error occurred after connecting to the DB.
 	err = db.Ping()
 	if err != nil {
 		db.Close()
