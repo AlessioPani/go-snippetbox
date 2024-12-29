@@ -7,13 +7,14 @@ import (
 	"github.com/AlessioPani/go-snippetbox/internal/models"
 )
 
+// templateData is a struct that contains data to be passed on a template
 type templateData struct {
 	Snippet  models.Snippet
 	Snippets []models.Snippet
 }
 
+// newTemplateCache is a method that creates a in-memory template cache.
 func newTemplateCache() (map[string]*template.Template, error) {
-
 	cache := map[string]*template.Template{}
 
 	pages, err := filepath.Glob("./ui/html/pages/*.tmpl.html")
@@ -22,13 +23,17 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	}
 
 	for _, page := range pages {
-		files := []string{
-			"./ui/html/base.tmpl.html",
-			"./ui/html/partials/nav.tmpl.html",
-			page,
+		ts, err := template.ParseFiles("./ui/html/base.tmpl.html")
+		if err != nil {
+			return nil, err
 		}
 
-		ts, err := template.ParseFiles(files...)
+		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl.html")
+		if err != nil {
+			return nil, err
+		}
+
+		ts, err = ts.ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}

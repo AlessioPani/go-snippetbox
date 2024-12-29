@@ -2,8 +2,7 @@ package main
 
 import "net/http"
 
-// routes configures the application mux and return it back to the
-// main function.
+// routes configures the application mux and return it back to the main function.
 func (app *application) routes() *http.ServeMux {
 	mux := http.NewServeMux()
 
