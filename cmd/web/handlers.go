@@ -5,9 +5,19 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/AlessioPani/go-snippetbox/internal/models"
 )
+
+// Struct containing data form and errors to be sent back to the form.
+type snippetCreateForm struct {
+	Title       string
+	Content     string
+	Expires     int
+	FieldErrors map[string]string
+}
 
 // home is the homepage handler.
 // Method: GET
@@ -53,6 +63,9 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 // Method: GET
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
+	data.Form = snippetCreateForm{
+		Expires: 365,
+	}
 
 	app.render(w, r, http.StatusOK, "create.tmpl.html", data)
 }
@@ -66,16 +79,45 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
+	// Retrieve data from the form and fill a snippetCreateForm struct.
 	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	if err != nil {
 		app.clientError(w, r, http.StatusBadRequest)
 		return
 	}
 
+	form := snippetCreateForm{
+		Title:       r.PostForm.Get("title"),
+		Content:     r.PostForm.Get("content"),
+		Expires:     expires,
+		FieldErrors: make(map[string]string),
+	}
+
+	// Validate form data.
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["title"] = "This field cannot be more 100 characters long"
+	}
+
+	if strings.TrimSpace(form.Content) == "" {
+		form.FieldErrors["content"] = "This field cannot be blank"
+	}
+
+	if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
+		form.FieldErrors["expires"] = "This field must equal 1, 7 or 365"
+	}
+
+	// If errors, render back the createSnippet form with all the data put by the user and the errors.
+	if len(form.FieldErrors) > 0 {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "create.tmpl.html", data)
+		return
+	}
+
 	// Insert a snippet record into the db and check for errors.
-	id, err := app.snippets.Insert(title, content, expires)
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
