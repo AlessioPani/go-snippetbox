@@ -51,7 +51,6 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 
 // snippetCreate is the handler that shows a form used to create a snippet.
 // Method: GET
-// TODO: show a page with a form that can send a Post request to the relevant handler.
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
@@ -60,11 +59,20 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 // snippetCreatePost is the handler that creates a snippet by parsing and validating the form it has received.
 // Method: POST
-// TODO read parameters from an actual POST request.
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	title := "Title test"
-	content := "Content test"
-	expires := 7
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, r, http.StatusBadRequest)
+		return
+	}
+
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	if err != nil {
+		app.clientError(w, r, http.StatusBadRequest)
+		return
+	}
 
 	// Insert a snippet record into the db and check for errors.
 	id, err := app.snippets.Insert(title, content, expires)
