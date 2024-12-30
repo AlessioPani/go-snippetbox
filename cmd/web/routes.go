@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/justinas/alice"
+)
 
 // routes configures the application mux and return it back to the main function.
 func (app *application) routes() http.Handler {
@@ -18,5 +22,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
 	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
 
-	return app.recoverPanic(app.logRequest(commonHeaders(mux)))
+	// alice package: creates a middleware chain to be used on every request.
+	standard := alice.New(app.recoverPanic, app.logRequest, commonHeaders)
+
+	return standard.Then(mux)
 }
