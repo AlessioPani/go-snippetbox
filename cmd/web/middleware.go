@@ -1,7 +1,30 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
+// recoverPanic is a middleware that recovers from a panic occurred in the same goroutine.
+// Instead of an empty reply from the server, we defer a function to send a proper server Error to the user.
+// The same strategy can be used if other goroutines are used to run some background tasks (not only HTTP requests).
+func (app *application) recoverPanic(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Create a deferred function (which will always be run in the event
+		// of a panic as Go unwinds the stack).
+		defer func() {
+			err := recover()
+			if err != nil {
+				w.Header().Set("Connection", "close")
+				// recover() returns any, fmt.Errorf is used to convert any type into a string.
+				app.serverError(w, r, fmt.Errorf("%s", err))
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// logRequest is a middleware that logs each request.
 func (app *application) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := r.RemoteAddr
