@@ -53,7 +53,9 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 // Method: GET
 // TODO: show a page with a form that can send a Post request to the relevant handler.
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display a form to create a snippet..."))
+	data := app.newTemplateData(r)
+
+	app.render(w, r, http.StatusOK, "create.tmpl.html", data)
 }
 
 // snippetCreatePost is the handler that creates a snippet by parsing and validating the form it has received.
