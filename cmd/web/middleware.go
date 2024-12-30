@@ -2,6 +2,19 @@ package main
 
 import "net/http"
 
+func (app *application) logRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := r.RemoteAddr
+		proto := r.Proto
+		method := r.Method
+		uri := r.RequestURI
+
+		app.logger.Info("received request", "ip", ip, "proto", proto, "method", method, "uri", uri)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // commonHeaders is a middleware that sets some useful common headers to each request.
 func commonHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
