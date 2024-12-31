@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/AlessioPani/go-snippetbox/internal/models"
+	"github.com/go-playground/form"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
@@ -18,6 +19,7 @@ type application struct {
 	logger        *slog.Logger
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 }
 
 func main() {
@@ -47,11 +49,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize the form decoder
+	formDecoder := form.NewDecoder()
+
 	// Initializes application config with all the dependencies
 	app := &application{
 		logger:        logger,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:   formDecoder,
 	}
 
 	// Gets the configured mux

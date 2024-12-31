@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/go-playground/form"
 )
 
 // serverError is a method that writes a log entry at Error level and sends a generic 500 Internal Server Error response to the user.
@@ -53,4 +56,24 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 	return templateData{
 		CurrentYear: time.Now().Year(),
 	}
+}
+
+// decodePostForm decodes a POST form from a http.Request and store it into a destination (dst).
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+
+	err = app.formDecoder.Decode(&dst, r.PostForm)
+	if err != nil {
+		// Checks for an invalid target destination error. If so, panic and then returns the error.
+		var invalidDecoderError *form.InvalidDecoderError
+		if errors.As(err, &invalidDecoderError) {
+			panic(err)
+		}
+		return err
+	}
+
+	return nil
 }

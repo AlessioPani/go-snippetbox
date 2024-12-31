@@ -12,10 +12,10 @@ import (
 
 // Struct containing data form and errors to be sent back to the form.
 type snippetCreateForm struct {
-	Title   string
-	Content string
-	Expires int
-	validator.Validator
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
 }
 
 // home is the homepage handler.
@@ -78,17 +78,12 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Retrieve data from the form and fill a snippetCreateForm struct.
-	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	// Retrieve data from the POST form and decode it into a snippetCreateForm struct.
+	var form snippetCreateForm
+	err = app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, r, http.StatusBadRequest)
 		return
-	}
-
-	form := snippetCreateForm{
-		Title:   r.PostForm.Get("title"),
-		Content: r.PostForm.Get("content"),
-		Expires: expires,
 	}
 
 	// Validate form data.
