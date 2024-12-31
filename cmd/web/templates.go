@@ -21,9 +21,15 @@ func humanDate(t time.Time) string {
 	return t.Format("02 Jan 2006 at 15:04")
 }
 
+// addNumbers is a function that returns the sum of two numbers.
+func addNumbers(x int, y int) int {
+	return x + y
+}
+
 // functions is a global template.FuncMap to store the custom functions we made available to templates.
 var functions = template.FuncMap{
-	"humanDate": humanDate,
+	"humanDate":  humanDate,
+	"addNumbers": addNumbers,
 }
 
 // newTemplateCache is a method that creates a in-memory template cache.
