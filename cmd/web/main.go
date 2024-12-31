@@ -7,33 +7,43 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/AlessioPani/go-snippetbox/internal/models"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
-// application is a struct that contains the web application config
+// application is a struct that contains the web application config.
 type application struct {
-	logger        *slog.Logger
-	snippets      *models.SnippetModel
-	templateCache map[string]*template.Template
-	formDecoder   *form.Decoder
+	logger         *slog.Logger
+	snippets       *models.SnippetModel
+	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 func main() {
-	// Gets the app config by parsing command line parameters
+	// Get the app config by parsing command line parameters.
 	addr := flag.String("addr", ":8080", "HTTP Network Address")
 	dsn := flag.String("dsn", "./db-data/snippetbox.db", "Database dsn")
 	flag.Parse()
 
-	// Initializes a new structured logger with minimum level set to "debug"
+	// Initialize a new structured logger with minimum level set to "debug".
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 
-	// Connect to the database by instantiating a db connection pool
+	// Initialize and configures a session manager based on cookies.
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.IdleTimeout = 20 * time.Minute
+	sessionManager.Cookie.Persist = true
+	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
+
+	// Connect to the database by instantiating a db connection pool.
 	db, err := openDB(*dsn)
 	if err != nil {
 		logger.Error(err.Error())
@@ -42,28 +52,29 @@ func main() {
 	logger.Info("connected to the database", "dsn", *dsn)
 	defer db.Close()
 
-	// Fill the template cache
+	// Fill the template cache.
 	templateCache, err := newTemplateCache()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
-	// Initialize the form decoder
+	// Initialize the form decoder.
 	formDecoder := form.NewDecoder()
 
-	// Initializes application config with all the dependencies
+	// Initialize application config with all the dependencies.
 	app := &application{
-		logger:        logger,
-		snippets:      &models.SnippetModel{DB: db},
-		templateCache: templateCache,
-		formDecoder:   formDecoder,
+		logger:         logger,
+		snippets:       &models.SnippetModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 
-	// Gets the configured mux
+	// Get the configured mux.
 	mux := app.routes()
 
-	// Starts the server and checks for errors
+	// Start the server and checks for errors.
 	logger.Info("starting server", slog.String("addr", *addr))
 	err = http.ListenAndServe(*addr, mux)
 	logger.Error(err.Error())

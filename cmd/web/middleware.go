@@ -10,13 +10,12 @@ import (
 // The same strategy can be used if other goroutines are used to run some background tasks (not only HTTP requests).
 func (app *application) recoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a deferred function (which will always be run in the event
-		// of a panic as Go unwinds the stack).
+		// Create a deferred function (which will always be run in the event of a panic as Go unwinds the stack).
 		defer func() {
 			err := recover()
 			if err != nil {
 				w.Header().Set("Connection", "close")
-				// recover() returns any, fmt.Errorf is used to convert any type into a string.
+				// recover() returns any, fmt.Errorf is used to convert it into a string.
 				app.serverError(w, r, fmt.Errorf("%s", err))
 			}
 		}()

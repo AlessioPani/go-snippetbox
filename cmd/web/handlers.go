@@ -10,7 +10,7 @@ import (
 	"github.com/AlessioPani/go-snippetbox/internal/validator"
 )
 
-// Struct containing data form and errors to be sent back to the form.
+// snippetCreateForm is a struct that contains data form and errors to be sent back to the form.
 type snippetCreateForm struct {
 	Title               string `form:"title"`
 	Content             string `form:"content"`
@@ -106,6 +106,9 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		app.serverError(w, r, err)
 		return
 	}
+
+	// Add a confirmation message in session data.
+	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 
 	// Redirect the user to the relevant page for the snippet.
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d/", id), http.StatusSeeOther)

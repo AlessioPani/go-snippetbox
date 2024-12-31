@@ -24,7 +24,7 @@ func (app *application) clientError(w http.ResponseWriter, r *http.Request, stat
 	http.Error(w, http.StatusText(status), status)
 }
 
-// render is a method that renders a specified template, if exists.
+// render is a function used to render a specified template, if exists.
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data templateData) {
 	// Check if the requested template exists in cache.
 	ts, ok := app.templateCache[page]
@@ -34,7 +34,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		return
 	}
 
-	// Create a new buffer
+	// Create a new buffer.
 	buf := new(bytes.Buffer)
 
 	// Execute the template in the buffer to check for errors.
@@ -51,10 +51,11 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	buf.WriteTo(w)
 }
 
-// newTemplateData sets up some common template data.
+// newTemplateData set up some common template data.
 func (app *application) newTemplateData(r *http.Request) templateData {
 	return templateData{
 		CurrentYear: time.Now().Year(),
+		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
 	}
 }
 
@@ -67,7 +68,7 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 
 	err = app.formDecoder.Decode(&dst, r.PostForm)
 	if err != nil {
-		// Checks for an invalid target destination error. If so, panic and then returns the error.
+		// Check for an invalid target destination error. If so, panic and then return the error.
 		var invalidDecoderError *form.InvalidDecoderError
 		if errors.As(err, &invalidDecoderError) {
 			panic(err)
