@@ -74,9 +74,14 @@ func main() {
 	// Get the configured mux.
 	mux := app.routes()
 
-	// Start the server and checks for errors.
+	// Start the server and check for errors.
 	logger.Info("starting server", slog.String("addr", *addr))
-	err = http.ListenAndServe(*addr, mux)
+	server := http.Server{
+		Addr:     *addr,
+		Handler:  mux,
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
+	err = server.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
 }
