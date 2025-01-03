@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/AlessioPani/go-snippetbox/ui"
 	"github.com/justinas/alice"
 )
 
@@ -10,11 +11,8 @@ import (
 func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 
-	// Static files server.
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-
-	// Static files handler.
-	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
+	// Static files handler using embedded files.
+	mux.Handle("GET /static/", http.FileServerFS(ui.Files))
 
 	// Dynamic application routes with the new session manager.
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
