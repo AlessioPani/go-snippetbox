@@ -45,7 +45,33 @@ func (m *UserModel) Insert(name, email, password string) error {
 // Authenticate is used to verify whether a user exists with the provided email address and password.
 // This will return the relevant user ID if they do.
 func (m *UserModel) Authenticate(email, password string) (int, error) {
-	return 0, nil
+	var id int
+	var hashedPassword []byte
+
+	query := "SELECT id, hashed_password FROM users WHERE email = ?"
+
+	err := m.DB.QueryRow(query, email).Scan(&id, &hashedPassword)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrInvalidCredentials
+		} else {
+			return 0, err
+		}
+	}
+
+	// Check whether the hashed password and plain-text password provided match.
+	// If they don't, we return the ErrInvalidCredentials error.
+	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return 0, ErrInvalidCredentials
+		} else {
+			return 0, err
+		}
+	}
+
+	// Otherwise, the password is correct. Return the user ID.
+	return id, nil
 }
 
 // EmailTaken is used to check if a mail exists already.
