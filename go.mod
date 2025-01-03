@@ -7,6 +7,7 @@ require (
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/justinas/alice v1.2.0
 	github.com/ncruces/go-sqlite3 v0.21.3
+	golang.org/x/crypto v0.31.0
 )
 
 require (

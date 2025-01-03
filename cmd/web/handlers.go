@@ -156,11 +156,35 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Add a confirmation message in session data.
-	app.sessionManager.Put(r.Context(), "flash", "User successfully created!")
+	// Check if the mail in input already exists.
+	// With sqlite we need to check separately in this way; mySql for instance
+	// does have specific error codes.
+	exists, err := app.users.MailExists(form.Email)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
 
-	// Redirect the user to the relevant page for the snippet.
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	if exists {
+		form.AddFieldError("email", "Email address is already in use")
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+	}
+
+	// Try to create a new user record in the database.
+	err = app.users.Insert(form.Name, form.Email, form.Password)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	// Otherwise add a confirmation flash message to the session confirming that
+	// their signup worked.
+	app.sessionManager.Put(r.Context(), "flash", "Your signup was successful. Please log in.")
+
+	// And redirect the user to the login page.
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
