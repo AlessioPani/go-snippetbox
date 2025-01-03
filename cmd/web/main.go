@@ -78,6 +78,7 @@ func main() {
 	// The others are very CPU intensive, so omitting them helps ensure that our server will remain performant under heavy loads.
 	tlsConfig := &tls.Config{
 		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+		MinVersion:       tls.VersionTLS13,
 	}
 
 	// Get the configured mux.
