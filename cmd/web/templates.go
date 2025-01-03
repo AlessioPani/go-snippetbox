@@ -10,11 +10,12 @@ import (
 
 // templateData is a struct that contains data to be passed on a template.
 type templateData struct {
-	CurrentYear int
-	Snippet     models.Snippet
-	Snippets    []models.Snippet
-	Form        any
-	Flash       string
+	CurrentYear     int
+	Snippet         models.Snippet
+	Snippets        []models.Snippet
+	Form            any
+	Flash           string
+	IsAuthenticated bool
 }
 
 // humanDate is a function that returns a nicely formatted date.
