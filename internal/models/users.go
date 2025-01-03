@@ -93,5 +93,17 @@ func (m *UserModel) EmailTaken(email string) (bool, error) {
 
 // Exists is used to check if a user exists with a specific ID.
 func (m *UserModel) Exists(id int) (bool, error) {
-	return false, nil
+	var exists bool
+
+	query := "SELECT EXISTS(SELECT true FROM users WHERE id = ?)"
+
+	// This query is expected to get 1 row at most.
+	result := m.DB.QueryRow(query, id)
+
+	// Copy the result into the boolean variable.
+	// We need to check only if a row was returned, and the query will return
+	// a 1 (true) if at least one row was returned.
+	err := result.Scan(&exists)
+
+	return exists, err
 }
