@@ -76,28 +76,19 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 
 // EmailTaken is used to check if a mail exists already.
 func (m *UserModel) EmailTaken(email string) (bool, error) {
-	query := `SELECT id FROM users WHERE email = ?`
+	var exists bool
+
+	query := "SELECT EXISTS(SELECT true FROM users WHERE email = ?)"
 
 	// This query is expected to get 1 row at most.
 	result := m.DB.QueryRow(query, email)
 
-	// Copy the result into a User struct and check for errors.
-	// We need to check only if a row was returned, so there is no need to
-	// get all the fields.
-	var u User
-	err := result.Scan(&u.ID)
-	if err != nil {
-		// Check if Scan didn't return any rows
-		// If so, the mail in input can be utilized for a signup.
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil // mail not found
-		} else {
-			return false, err
-		}
-	}
+	// Copy the result into the boolean variable.
+	// We need to check only if a row was returned, and the query will return
+	// a 1 (true) if at least one row was returned.
+	err := result.Scan(&exists)
 
-	// If no error has occurred, a mail was actually found in the DB.
-	return true, nil // mail found
+	return exists, err
 }
 
 // Exists is used to check if a user exists with a specific ID.
