@@ -10,11 +10,19 @@ import (
 	"github.com/AlessioPani/go-snippetbox/internal/validator"
 )
 
-// snippetCreateForm is a struct that contains data form and errors to be sent back to the form.
+// snippetCreateForm is a struct that contains snippet data and errors to be sent back to the form.
 type snippetCreateForm struct {
 	Title               string `form:"title"`
 	Content             string `form:"content"`
 	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
+}
+
+// userSignupForm is a struct that contains user data form and errors to be sent back to the form.
+type userSignupForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
 	validator.Validator `form:"-"`
 }
 
@@ -74,7 +82,7 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		app.clientError(w, r, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -82,7 +90,7 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	var form snippetCreateForm
 	err = app.decodePostForm(r, &form)
 	if err != nil {
-		app.clientError(w, r, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -114,12 +122,45 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d/", id), http.StatusSeeOther)
 }
 
+// userSignup is the handler that shows a form used to signup.
+// Method: GET
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display a form for signing up a new user...")
+	data := app.newTemplateData(r)
+	data.Form = userSignupForm{}
+	app.render(w, r, http.StatusOK, "signup.tmpl.html", data)
 }
 
+// userSignupPost is the handler that creates a user by parsing and validating the form it has received.
+// Method: POST
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Create a new user...")
+	// Retrieve data from the POST form and decode it into a userSignupForm struct.
+	var form userSignupForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Validate form data.
+	form.CheckField(validator.NotBlank(form.Name), "name", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field must be at least 8 characters long")
+
+	// If errors, render back the userSignup form with all the data put by the user and the errors.
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+		return
+	}
+
+	// Add a confirmation message in session data.
+	app.sessionManager.Put(r.Context(), "flash", "User successfully created!")
+
+	// Redirect the user to the relevant page for the snippet.
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
