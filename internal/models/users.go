@@ -48,8 +48,8 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 	return 0, nil
 }
 
-// MailExists is used to check if a mail exists already.
-func (m *UserModel) MailExists(email string) (bool, error) {
+// EmailTaken is used to check if a mail exists already.
+func (m *UserModel) EmailTaken(email string) (bool, error) {
 	query := `SELECT id FROM users WHERE email = ?`
 
 	// This query is expected to get 1 row at most.

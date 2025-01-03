@@ -159,7 +159,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	// Check if the mail in input already exists.
 	// With sqlite we need to check separately in this way; mySql for instance
 	// does have specific error codes.
-	exists, err := app.users.MailExists(form.Email)
+	exists, err := app.users.EmailTaken(form.Email)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
