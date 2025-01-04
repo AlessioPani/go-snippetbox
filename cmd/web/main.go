@@ -105,7 +105,6 @@ func main() {
 }
 
 // openDB open a connection pool on Sqlite based on the DSN.
-// TODO: check if no table are in the db, otherwise create tables as required for the application.
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
@@ -116,6 +115,12 @@ func openDB(dsn string) (*sql.DB, error) {
 	err = db.Ping()
 	if err != nil {
 		db.Close()
+		return nil, err
+	}
+
+	// Verify if the required tables are in the database.
+	err = checkTables(db)
+	if err != nil {
 		return nil, err
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -91,4 +92,59 @@ func (app *application) isAuthenticated(r *http.Request) bool {
 	}
 
 	return isAuthenticated
+}
+
+// checkTables is a function that checks for users and snippets tables.
+// If they are not in the DB, create them.
+func checkTables(db *sql.DB) error {
+	var tableName string
+
+	// Check for the table users.
+	query := `SELECT name FROM sqlite_master WHERE type='table' AND name='users';`
+	err := db.QueryRow(query).Scan(&tableName)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			createUsersTable := `
+				CREATE TABLE users (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					name VARCHAR(255) NOT NULL,
+					email VARCHAR(255) NOT NULL,
+					hashed_password CHAR(60) NOT NULL,
+					created DATETIME NOT NULL,
+					CONSTRAINT uc_email UNIQUE (email)
+				);`
+			_, err = db.Exec(createUsersTable)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	// Check for the table snippets.
+	query = `SELECT name FROM sqlite_master WHERE type='table' AND name='snippets';`
+	err = db.QueryRow(query).Scan(&tableName)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			createTableQuery := `
+				CREATE TABLE snippets (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					title VARCHAR(255) NOT NULL,
+					content VARCHAR(255) NOT NULL,
+					created DATETIME NOT NULL,
+					expires DATETIME NOT NULL
+				);`
+			_, err = db.Exec(createTableQuery)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	return nil
 }
