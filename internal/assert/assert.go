@@ -7,6 +7,6 @@ func Equal[T comparable](t *testing.T, name string, actual T, expected T) {
 	t.Helper()
 
 	if actual != expected {
-		t.Errorf("Test %s | got %v, want %v", name, expected, actual)
+		t.Errorf("Test %s | got %v, want %v", name, actual, expected)
 	}
 }

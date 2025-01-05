@@ -14,6 +14,9 @@ func (app *application) routes() http.Handler {
 	// Static files handler using embedded files.
 	mux.Handle("GET /static/", http.FileServerFS(ui.Files))
 
+	// Ping route
+	mux.HandleFunc("/ping", ping)
+
 	// Dynamic application routes with the new session manager.
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
