@@ -17,6 +17,14 @@ type User struct {
 	Created        time.Time
 }
 
+// UserModelInterface interface.
+type UserModelInterface interface {
+	Insert(name, email, password string) error
+	Authenticate(email, password string) (int, error)
+	Exists(id int) (bool, error)
+	EmailTaken(email string) (bool, error)
+}
+
 // UserModel is a struct used to call DB operations.
 type UserModel struct {
 	DB *sql.DB

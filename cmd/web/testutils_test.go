@@ -8,13 +8,40 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/AlessioPani/go-snippetbox/internal/models/mocks"
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form"
 )
 
 // Create a newTestApplication helper which returns an instance of our
 // application struct containing mocked dependencies.
 func newTestApplication(t *testing.T) *application {
+	// Create an instance of the template cache.
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a form decoder.
+	formDecoder := form.NewDecoder()
+
+	// Create a session manager instance with the same settings as
+	// production.
+	// If no store is set (as in production), the SCS package will default
+	// to using a in-memory store, which is ideal for testing purposes.
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
 	return &application{
-		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		logger:         slog.New(slog.NewTextHandler(io.Discard, nil)),
+		snippets:       &mocks.SnippetModel{}, // Use the mock.
+		users:          &mocks.UserModel{},    // Use the mock.
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 }
 
