@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 	"time"
 
@@ -14,6 +16,34 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
 )
+
+// Define a custom testServer type which embeds a httptest.Server instance.
+type testServer struct {
+	*httptest.Server
+}
+
+// Create a newTestServer helper which initalizes and returns a new instance
+// of our custom testServer type.
+func newTestServer(t *testing.T, h http.Handler) *testServer {
+	ts := httptest.NewTLSServer(h)
+
+	// Initialize a new cookie jar.
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Add the cookie jar to the test server.
+	ts.Client().Jar = jar
+
+	// To test a single handler we ignore all the redirects and return only
+	// the latest status code.
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	return &testServer{ts}
+}
 
 // Create a newTestApplication helper which returns an instance of our
 // application struct containing mocked dependencies.
@@ -45,32 +75,23 @@ func newTestApplication(t *testing.T) *application {
 	}
 }
 
-// Define a custom testServer type which embeds a httptest.Server instance.
-type testServer struct {
-	*httptest.Server
-}
+// Define a regular expression which captures the CSRF token value from the
+// HTML for our user signup page.
+var csrfTokenRX = regexp.MustCompile(`<input type='hidden' name='csrf_token' value='(.+)'>`)
 
-// Create a newTestServer helper which initalizes and returns a new instance
-// of our custom testServer type.
-func newTestServer(t *testing.T, h http.Handler) *testServer {
-	ts := httptest.NewTLSServer(h)
-
-	// Initialize a new cookie jar.
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		t.Fatal(err)
+// extractCSRFToken is a method that extract the token from the HTML body.
+func extractCSRFToken(t *testing.T, body string) string {
+	// FindStringSubmatch returns an array with the entire matched pattern in the
+	// first position, and the values of any captured data in the subsequent
+	// positions.
+	matches := csrfTokenRX.FindStringSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatal("no csrf token found in body")
 	}
 
-	// Add the cookie jar to the test server.
-	ts.Client().Jar = jar
-
-	// To test a single handler we ignore all the redirects and return only
-	// the latest status code.
-	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
-
-	return &testServer{ts}
+	// html/template automatically escape the HTML body, changing the token.
+	// We unescape it in order to get the original token.
+	return html.UnescapeString(matches[1])
 }
 
 // Implement a get() method on our custom testServer type. This makes a GET

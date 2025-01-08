@@ -63,5 +63,20 @@ func TestSnippetView(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestUserSignup(t *testing.T) {
+	// Create a new test application config.
+	// The logger is required for some middleware.
+	app := newTestApplication(t)
+
+	// Create a new test server.
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	// Extract the CSRF token
+	_, _, body := ts.get(t, "/user/signup")
+	csrfToken := extractCSRFToken(t, body)
+
+	t.Logf("csrf token: %s", csrfToken)
 }
