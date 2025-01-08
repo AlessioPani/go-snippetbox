@@ -18,7 +18,7 @@ type UserModel struct{}
 
 func (m *UserModel) Insert(name, email, password string) error {
 	switch email {
-	case "test@test.com":
+	case "duplicate@mail.com":
 		return models.ErrDuplicateEmail
 	default:
 		return nil
@@ -34,7 +34,7 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 
 func (m *UserModel) EmailTaken(email string) (bool, error) {
 	switch email {
-	case "test@test.com":
+	case "duplicate@mail.com":
 		return true, nil
 	default:
 		return false, nil
