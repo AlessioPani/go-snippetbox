@@ -25,7 +25,7 @@ func TestHumanDate(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			result := humanDate(test.inputTime)
-			assert.Equal(t, test.name, result, test.expectedResult)
+			assert.Equal(t, result, test.expectedResult)
 		})
 	}
 }
@@ -49,7 +49,7 @@ func TestAddNumbers(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			result := addNumbers(test.x, test.y)
-			assert.Equal(t, test.name, result, test.expectedResult)
+			assert.Equal(t, result, test.expectedResult)
 		})
 	}
 }
