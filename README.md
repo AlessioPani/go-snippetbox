@@ -20,13 +20,14 @@ The project serves as training for building a web app with Go, following (or at 
 - Go Playground's [validator](https://github.com/go-playground/validator)
 - Sqlite CGO-free driver from [ncruces](https://github.com/ncruces/go-sqlite3)
 
-## Useful commands
+## Useful commands
 
 - Create a cover profile file
 
   `go test -coverprofile=./coverage.out  ./...` 
 
 - Open the cover profile file in your browser to see coverage
+
   `go tool cover -html=./coverage.out` 
 
 
