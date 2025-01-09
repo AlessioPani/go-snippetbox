@@ -28,6 +28,19 @@ func TestPing(t *testing.T) {
 
 }
 
+func TestHomepage(t *testing.T) {
+	// Create a new test application config.
+	// The logger is required for some middleware.
+	app := newTestApplication(t)
+
+	// Create a new test server.
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	code, _, _ := ts.get(t, "/")
+	assert.Equal(t, code, http.StatusOK)
+}
+
 func TestSnippetView(t *testing.T) {
 	// Create a new test application config.
 	// The logger is required for some middleware.
@@ -64,6 +77,40 @@ func TestSnippetView(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSnippetCreate(t *testing.T) {
+	// Create a new test application config.
+	// The logger is required for some middleware.
+	app := newTestApplication(t)
+
+	// Create a new test server.
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	// Check if an unauthenticated user gets redirected to the login user page
+	// when trying to open the snippet creation form.
+	t.Run("Unauthenticated", func(t *testing.T) {
+		code, headers, _ := ts.get(t, "/snippet/create")
+		assert.Equal(t, code, http.StatusSeeOther)
+		assert.Equal(t, headers.Get("Location"), "/user/login")
+	})
+
+	// Check if an authenticated user actually see the snippet create form.
+	t.Run("Authenticated", func(t *testing.T) {
+		_, _, body := ts.get(t, "/user/login")
+		csrfToken := extractCSRFToken(t, body)
+
+		form := url.Values{}
+		form.Add("email", "test@test.com")
+		form.Add("password", "password")
+		form.Add("csrf_token", csrfToken)
+		ts.postForm(t, "/user/login", form)
+
+		code, _, body := ts.get(t, "/snippet/create")
+		assert.Equal(t, code, http.StatusOK)
+		assert.StringContains(t, body, "<form action='/snippet/create' method='POST'>")
+	})
 }
 
 func TestUserSignup(t *testing.T) {
