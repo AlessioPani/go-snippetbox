@@ -1,5 +1,5 @@
 # Go Snippetbox
-Go Snippetbox is a simple web application written in Go that allows users to manage and display text snippets. 
+Go Snippetbox is a simple web application written in Go that allows users to manage and display text snippets.
 
 The project serves as training for building a web app with Go, following (or at least trying to follow) best practices for project structure, dependency management, and code organization.
 
@@ -20,15 +20,9 @@ The project serves as training for building a web app with Go, following (or at 
 - Go Playground's [validator](https://github.com/go-playground/validator)
 - Sqlite CGO-free driver from [ncruces](https://github.com/ncruces/go-sqlite3)
 
-## Useful commands
 
-- Create a cover profile file
-
-  `go test -coverprofile=./coverage.out  ./...` 
-
-- Open the cover profile file in your browser to see coverage
-
-  `go tool cover -html=./coverage.out` 
+## TODO
+- Finish tests
 
 
 ## Acknowledgements

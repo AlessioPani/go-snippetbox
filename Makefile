@@ -19,7 +19,7 @@ run: build
 # start: alias to run
 start: run
 
-# stop: stops the running application 
+# stop: stops the running application
 # Windows users: use @taskkill /IM ${BINARY_NAME} /F instead
 stop:
 	@echo "Stopping..."
@@ -28,6 +28,10 @@ stop:
 
 # restart: stop and start the application
 restart: stop start
+
+# test: executes and generates coverage profile
+test:
+	go test -coverprofile=./coverage.out  ./... && go tool cover -html=./coverage.out
 
 # clean: runs go clean and deletes the executable
 clean:
