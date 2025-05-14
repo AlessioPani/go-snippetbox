@@ -6,7 +6,7 @@ require (
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/justinas/alice v1.2.0
-	github.com/justinas/nosurf v1.1.1
+	github.com/justinas/nosurf v1.2.0
 	github.com/ncruces/go-sqlite3 v0.21.3
 	golang.org/x/crypto v0.35.0
 )
