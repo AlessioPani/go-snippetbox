@@ -7,10 +7,8 @@ import (
 	"unicode/utf8"
 )
 
-// EmailRX is regular expression pattern for sanity checking the format of an email address.
-// This returns a pointer to a 'compiled' regexp.Regexp type, or panics in the event of an error.
-// Parsing this pattern once at startup and storing the compiled *regexp.Regexp in a variable
-// is more performant than re-parsing the pattern each time we need it.
+// EmailRX is a compiled regular expression for checking the basic format of an email address.
+// It is compiled once at startup so validation does not recompile it for each request.
 var EmailRX = regexp.MustCompile(`^[a-zA-Z0-9.!#$%&'*+/=?^_{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
 
 // Validator is a struct which contains a map of validation error messages.
