@@ -153,6 +153,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
 	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
 	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(len(form.Password) <= 72, "password", "This field cannot be more than 72 bytes long")
 	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field must be at least 8 characters long")
 
 	// If errors, render back the userSignup form with all the data put by the user and the errors.
@@ -177,11 +178,20 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		data := app.newTemplateData(r)
 		data.Form = form
 		app.render(w, r, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+		return
 	}
 
 	// Try to create a new user record in the database.
 	err = app.users.Insert(form.Name, form.Email, form.Password)
 	if err != nil {
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			form.AddFieldError("email", "Email address is already in use")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, r, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
+			return
+		}
+
 		app.serverError(w, r, err)
 		return
 	}
@@ -218,6 +228,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
 	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
 	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(len(form.Password) <= 72, "password", "This field cannot be more than 72 bytes long")
 
 	if !form.Valid() {
 		data := app.newTemplateData(r)

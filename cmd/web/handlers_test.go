@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/AlessioPani/go-snippetbox/internal/assert"
@@ -197,6 +198,15 @@ func TestUserSignup(t *testing.T) {
 			userName:     validName,
 			userEmail:    validEmail,
 			userPassword: "pass",
+			csrfToken:    validCSRFToken,
+			wantCode:     http.StatusUnprocessableEntity,
+			wantFormTag:  formTag,
+		},
+		{
+			name:         "Password exceeds bcrypt limit",
+			userName:     validName,
+			userEmail:    validEmail,
+			userPassword: strings.Repeat("a", 73),
 			csrfToken:    validCSRFToken,
 			wantCode:     http.StatusUnprocessableEntity,
 			wantFormTag:  formTag,
