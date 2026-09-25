@@ -60,8 +60,7 @@ func commonHeaders(next http.Handler) http.Handler {
 		// "deny" is used to help prevent clickjacking attacks in older browsers that don’t support CSP headers.
 		w.Header().Set("X-Frame-Options", "deny")
 
-		// is used to disable the blocking of cross-site scripting attacks. Previously it was good practice to set this header to
-		// X-XSS-Protection: 1; mode=block, but when you’re using CSP headers like we are the recommendation is to disable it.
+		// Disable the deprecated browser XSS auditor; the Content-Security-Policy header is the active browser-side policy.
 		w.Header().Set("X-XSS-Protection", "0")
 
 		// A custom header.
