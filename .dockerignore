@@ -1,0 +1,7 @@
+.git
+.gitignore
+AGENTS.md
+bin/
+coverage.out
+tls/
+*.pem

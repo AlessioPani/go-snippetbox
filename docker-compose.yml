@@ -1,0 +1,27 @@
+services:
+  certgen:
+    build:
+      context: .
+      target: certgen
+    volumes:
+      - tls-certs:/certs
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      target: runtime
+    command: ["-addr=:8080", "-dsn=./db-data/snippetbox.db"]
+    depends_on:
+      certgen:
+        condition: service_completed_successfully
+    ports:
+      - "${SNIPPETBOX_PORT:-8080}:8080"
+    volumes:
+      - snippetbox-db:/app/db-data
+      - tls-certs:/app/tls:ro
+    restart: unless-stopped
+
+volumes:
+  snippetbox-db:
+  tls-certs:

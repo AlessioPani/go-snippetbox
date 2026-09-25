@@ -1,55 +1,57 @@
 # Go Snippetbox
-Go Snippetbox is a simple web application written in Go that allows users to manage and display text snippets.
 
-The project serves as training for building a web app with Go, following (or at least trying to follow) best practices for project structure, dependency management, and code organization.
+Go Snippetbox is a server-rendered web application for creating and viewing text snippets. It uses Go's `net/http` router, SQLite, embedded HTML templates and static assets, and session-based authentication.
 
+## Requirements
 
-
-## Features
-
-- Go 1.23 built-in mux
-- Creation and visualization of text snippets
-- Simple user registration with session-based authentication
-- Sqlite database for storing data
-- Server-side rendering with embedded HTML templates
-- Basic middleware for request logging and security
-
-
-
-## Dependencies
-
-- Go 1.23+ 
-- Make
-
-
+- Go 1.25 or newer
+- GNU Make
 
 ## Third-party packages
 
-- Alex Edward's session manager [scs](https://github.com/alexedwards/scs?tab=readme-ov-file#basic-use)
-- Justinas's [NoSurf](https://github.com/justinas/nosurf) middleware for the CSRF protection
-- Justinas's [Alice](https://github.com/justinas/alice) for a more readable middleware chaining
-- Go Playground's [validator](https://github.com/go-playground/validator)
-- Sqlite CGO-free driver from [ncruces](https://github.com/ncruces/go-sqlite3)
+- [scs](https://github.com/alexedwards/scs) for session management
+- [Alice](https://github.com/justinas/alice) for middleware chaining
+- [NoSurf](https://github.com/justinas/nosurf) for CSRF protection
+- [go-playground/form](https://github.com/go-playground/form) for form decoding
+- [ncruces/go-sqlite3](https://github.com/ncruces/go-sqlite3) for SQLite without CGO
+- [golang.org/x/crypto](https://pkg.go.dev/golang.org/x/crypto) for bcrypt password hashing
 
+## Run with Docker Compose
 
+Start the app and generate its local TLS certificate with one command:
 
-## Usage
+```sh
+docker compose up --build -d
+```
 
-- Clone this repository
+Open <https://localhost:8080> and accept the browser warning for the self-signed certificate. The seeded test account is `jdoe@mail.com` with password `password`. The SQLite database and generated certificate are kept in named Docker volumes across restarts. Stop the app with `docker compose down`; `docker compose down -v` also deletes those volumes and resets the database.
 
-  ```bash
-  git clone https://github.com/AlessioPani/go-snippetbox.git
-  ```
+To use another host port, set `SNIPPETBOX_PORT`, for example `SNIPPETBOX_PORT=8081 docker compose up --build -d`.
 
-- Build and run the web application
+## Run without Docker
 
-  ```bash
-  make start
-  ```
+The native `make start` target expects `tls/cert.pem` and `tls/key.pem`. Generate them in the repository root, then start the app:
 
-  
+```sh
+mkdir -p tls && cd tls
+go run "$(go env GOROOT)/src/crypto/tls/generate_cert.go" -host=localhost
+cd ..
+make start
+```
+
+The native server uses `:8080` and `./db-data/snippetbox.db` by default. Override the Make variables as needed, for example `make run ADDRESS=:9090 DSN=./db-data/dev.db`.
+
+## Development
+
+```sh
+make test       # Run all Go tests
+make build      # Build bin/web/snippetbox
+make coverage   # Run tests and open the HTML coverage report
+```
+
+The application code and handlers are in `cmd/web`; reusable models and validation are in `internal`; embedded templates and static assets are in `ui`. The template and asset files are embedded at build time.
 
 
 ## Acknowledgements
 
-- This project is based on the Let's Go 1.23 book's project, made by Alex Edwards, one of the most prominent Go developers in the community. [Here](https://lets-go.alexedwards.net) you can buy it!
+This project is based on the example application from [Let's Go](https://lets-go.alexedwards.net) by Alex Edwards.
