@@ -26,16 +26,16 @@ docker compose up --build -d
 
 Open <https://localhost:8080> and accept the browser warning for the self-signed certificate. The seeded test account is `jdoe@mail.com` with password `password`. The SQLite database and generated certificate are kept in named Docker volumes across restarts. Stop the app with `docker compose down`; `docker compose down -v` also deletes those volumes and resets the database.
 
+You can register additional accounts from the Signup page. Registration is immediate and does not require email verification or an activation token; this is an intentional simplification for this training project.
+
 To use another host port, set `SNIPPETBOX_PORT`, for example `SNIPPETBOX_PORT=8081 docker compose up --build -d`.
 
 ## Run without Docker
 
-The native `make start` target expects `tls/cert.pem` and `tls/key.pem`. Generate them in the repository root, then start the app:
+`make start` generates `tls/cert.pem` and `tls/key.pem` when they are missing, then builds and starts the app. To generate them separately, run `make cert`:
 
 ```sh
-mkdir -p tls && cd tls
-go run "$(go env GOROOT)/src/crypto/tls/generate_cert.go" -host=localhost
-cd ..
+make cert
 make start
 ```
 

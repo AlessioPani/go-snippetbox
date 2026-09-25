@@ -1,13 +1,16 @@
 # ==================================================================================== #
 # CONFIGURATION
 # ==================================================================================== #	
-## => Edit Makefile to update configuration variables as needed
+## => Update configuration variables in the Makefile as needed
 # APP CONFIGURATION VARIABLES
 BINARY_NAME = snippetbox
 ADDRESS = :8080
 
 # DATABASE CONFIGURATION VARIABLES
 DSN = ./db-data/snippetbox.db
+TLS_DIR = ./tls
+TLS_CERT = ${TLS_DIR}/cert.pem
+TLS_KEY = ${TLS_DIR}/key.pem
 
 ## COMMANDS LIST
 # ==================================================================================== #
@@ -20,7 +23,16 @@ help:
 
 # ==================================================================================== #
 # DEVELOPMENT
-# ==================================================================================== #	
+# ==================================================================================== #
+## cert: generate a local self-signed TLS certificate if missing
+cert:
+	@if [ ! -s "${TLS_CERT}" ] || [ ! -s "${TLS_KEY}" ]; then \
+		mkdir -p "${TLS_DIR}"; \
+		cd "${TLS_DIR}" && go run "$$(go env GOROOT)/src/crypto/tls/generate_cert.go" -host=localhost; \
+	else \
+		echo "TLS certificate already exists"; \
+	fi
+
 # build: build the application with extra flags to get the smallest executable
 # -s -w : disable generation of the Go symbol table and DWARF debugging information
 build:
@@ -28,7 +40,7 @@ build:
 	@env go build -ldflags="-s -w" -o ./bin/web/${BINARY_NAME} cmd/web/*
 
 # run: build and run the application
-run: build
+run: cert build
 	@echo "Running application..."
 	@env ./bin/web/${BINARY_NAME} -addr="${ADDRESS}" -dsn="${DSN}"
 
@@ -60,4 +72,3 @@ test:
 ## coverage: executes tests and generate coverage profile
 coverage:
 	@env go test ./... -coverprofile=./coverage.out -coverpkg=./... && go tool cover -html=./coverage.out
-
